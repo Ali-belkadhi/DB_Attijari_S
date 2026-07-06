@@ -1,6 +1,7 @@
 package com.attijari.reclamation.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -64,50 +65,51 @@ public class User {
     @Column(name = "DATE_CREATED", nullable = false, updatable = false)
     private LocalDateTime dateCreated;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ID_EQUIPE", referencedColumnName = "ID_EQUIPE")
-    @JsonIgnore
+    @JsonIgnoreProperties({ "members" })
+    // @JsonIgnore
     @ToString.Exclude
     private Equipe equipe;
 
     @ManyToOne
     @JoinColumn(name = "ID_AGENCE", referencedColumnName = "ID_AGENCE")
-    @JsonIgnore
-    @ToString.Exclude
+    // @JsonIgnore
+    // @ToString.Exclude
     private Agence agence;
 
     @ManyToOne
     @JoinColumn(name = "GROUP_ID", referencedColumnName = "GROUP_ID")
-    @JsonIgnore
-    @ToString.Exclude
+    // @JsonIgnore
+    // @ToString.Exclude
     private GroupeDroit groupeDroit;
 
     @Column(name = "IMAGE", length = 1000)
     private String image;
 
-    @PrePersist
-    public void initializeDefaults() {
-        if (dateCreated == null) dateCreated = LocalDateTime.now();
-        if (role == null) role = UserRole.USER;
-    }
+    // @PrePersist
+    // public void initializeDefaults() {
+    // if (dateCreated == null) dateCreated = LocalDateTime.now();
+    // if (role == null) role = UserRole.USER;
+    // }
 
-    @JsonProperty("agence")
-    public String getAgenceNom() {
-        return agence == null ? null : agence.getNom();
-    }
+    // @JsonProperty("agence")
+    // public String getAgenceNom() {
+    // return agence == null ? null : agence.getNom();
+    // }
 
-    @JsonProperty("agenceId")
-    public Long getAgenceId() {
-        return agence == null ? null : agence.getIdAgence();
-    }
+    // @JsonProperty("agenceId")
+    // public Long getAgenceId() {
+    // return agence == null ? null : agence.getIdAgence();
+    // }
 
-    @JsonProperty("idEquipe")
-    public Long getIdEquipe() {
-        return equipe == null ? null : equipe.getIdEquipe();
-    }
+    // @JsonProperty("idEquipe")
+    // public Long getIdEquipe() {
+    // return equipe == null ? null : equipe.getIdEquipe();
+    // }
 
-    @JsonProperty("groupId")
-    public String getGroupId() {
-        return groupeDroit == null ? null : groupeDroit.getGroupId();
-    }
+    // @JsonProperty("groupId")
+    // public String getGroupId() {
+    // return groupeDroit == null ? null : groupeDroit.getGroupId();
+    // }
 }

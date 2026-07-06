@@ -24,6 +24,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class Equipe {
 
     @Id
@@ -44,16 +45,18 @@ public class Equipe {
     private Boolean actif = true;
 
     @OneToMany(mappedBy = "equipe", fetch = FetchType.EAGER)
-    @JsonIgnore
+    // @JsonIgnore
     @ToString.Exclude
     private Set<User> members = new LinkedHashSet<>();
 
     @Column(name = "DATE_CREATION", nullable = false, updatable = false)
     private LocalDateTime dateCreation;
 
-    @PrePersist
-    public void initializeDefaults() {
-        if (actif == null) actif = true;
-        if (dateCreation == null) dateCreation = LocalDateTime.now();
-    }
+    // @PrePersist
+    // public void initializeDefaults() {
+    // if (actif == null)
+    // actif = true;
+    // if (dateCreation == null)
+    // dateCreation = LocalDateTime.now();
+    // }
 }

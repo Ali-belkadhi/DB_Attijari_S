@@ -4,6 +4,9 @@ import com.attijari.reclamation.dto.LoginDto;
 import com.attijari.reclamation.dto.LoginResponseDto;
 import com.attijari.reclamation.model.User;
 import com.attijari.reclamation.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,9 +23,11 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public LoginResponseDto login(LoginDto loginDto) {
         User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect."));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect."));
 
         if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou mot de passe incorrect.");
@@ -36,10 +41,9 @@ public class AuthService {
                 user.getRole(),
                 user.getTelephone(),
                 user.getCin(),
-                user.getAgenceNom(),
-                user.getIdEquipe(),
-                user.getImage()
-        );
+                user.getAgence(),
+                user.getEquipe(),
+                user.getImage());
 
         return new LoginResponseDto("Connexion réussie", userSummary);
     }
