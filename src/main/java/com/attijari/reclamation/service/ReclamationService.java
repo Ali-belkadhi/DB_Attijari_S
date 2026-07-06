@@ -61,10 +61,12 @@ public class ReclamationService {
         reclamation.setObjet(dto.getObjet().trim());
         reclamation.setType(dto.getType().trim());
         reclamation.setStatut(normalize(dto.getStatut()) == null ? "NOUVELLE" : dto.getStatut().trim());
+        reclamation.setPriorite(normalize(dto.getPriorite()) == null
+                ? "NORMALE"
+                : dto.getPriorite().trim().toUpperCase(Locale.ROOT));
         reclamation.setDescription(dto.getDescription().trim());
         reclamation.setReference(reclamation.getIdReclamation());
         reclamation.setTitre(reclamation.getObjet());
-        reclamation.setPriorite("NORMALE");
         reclamation.setClientAccessDiscussion(false);
         reclamation.setDestinationType(destinationType);
         reclamation.setAgence(resolveAgence(dto.getAgenceId()));
@@ -76,8 +78,9 @@ public class ReclamationService {
 
             }
             case DESTINATION_EQUIPE -> {
-                reclamation.setDestinations(resolveDestinations(dto.getDestinationIds()));
-                reclamation.setReceivers(new LinkedHashSet<>());
+                Set<Equipe> destinations = resolveDestinations(dto.getDestinationIds());
+                reclamation.setDestinations(destinations);
+                reclamation.setReceivers(resolveTeamMembers(destinations));
             }
             default -> throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -97,21 +100,24 @@ public class ReclamationService {
         return savedReclamation;
     }
 
+    @Transactional(readOnly = true)
     public List<Reclamation> findAll() {
         return reclamationRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<Reclamation> findReceivedByUser(String idUser) {
         if (!userRepository.existsByIdUser(idUser)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable");
         }
-        return reclamationRepository.findByReceivers_IdUserOrderByCreatedAtDesc(idUser);
+        return reclamationRepository.findReceivedByUser(idUser);
     }
 
     /**
      * Retourne toutes les réclamations liées à un utilisateur :
      * celles qu'il a envoyées ET celles qu'il a reçues (sender OR receiver).
      */
+    @Transactional(readOnly = true)
     public List<Reclamation> findByUser(String idUser) {
         if (!userRepository.existsByIdUser(idUser)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable");
@@ -119,6 +125,7 @@ public class ReclamationService {
         return reclamationRepository.findBySenderOrReceiver(idUser);
     }
 
+    @Transactional(readOnly = true)
     public Reclamation findOne(String id) {
         return reclamationRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Réclamation introuvable"));
@@ -134,12 +141,15 @@ public class ReclamationService {
             reclamation.setType(requireValue(dto.getType(), "Le type est requis"));
         if (dto.getStatut() != null)
             reclamation.setStatut(requireValue(dto.getStatut(), "Le statut est requis"));
+        if (dto.getPriorite() != null)
+            reclamation.setPriorite(requireValue(dto.getPriorite(), "La priorité est requise").toUpperCase(Locale.ROOT));
         if (dto.getDescription() != null)
             reclamation.setDescription(requireValue(dto.getDescription(), "La description est requise"));
         if (dto.getDestinationIds() != null) {
             reclamation.setDestinationType(DESTINATION_EQUIPE);
-            reclamation.setDestinations(resolveDestinations(dto.getDestinationIds()));
-            reclamation.getReceivers().clear();
+            Set<Equipe> destinations = resolveDestinations(dto.getDestinationIds());
+            reclamation.setDestinations(destinations);
+            reclamation.setReceivers(resolveTeamMembers(destinations));
         }
         if (dto.getAgenceId() != null)
             reclamation.setAgence(resolveAgence(dto.getAgenceId()));
@@ -195,6 +205,17 @@ public class ReclamationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Une équipe destinataire est inactive");
         }
         return new LinkedHashSet<>(equipes);
+    }
+
+    private Set<User> resolveTeamMembers(Set<Equipe> equipes) {
+        Set<User> members = new LinkedHashSet<>();
+        equipes.forEach(equipe -> members.addAll(equipe.getMembers()));
+        if (members.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "L'équipe destinataire ne contient aucun membre");
+        }
+        return members;
     }
 
     private Agence resolveAgence(Long agenceId) {

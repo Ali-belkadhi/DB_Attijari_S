@@ -29,6 +29,9 @@ public class CreateReclamationDto {
     @Size(max = 50, message = "Le statut ne doit pas dépasser 50 caractères")
     private String statut;
 
+    @Size(max = 50, message = "La priorité ne doit pas dépasser 50 caractères")
+    private String priorite;
+
     @NotBlank(message = "La description est requise")
     private String description;
 

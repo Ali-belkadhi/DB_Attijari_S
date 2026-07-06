@@ -33,6 +33,7 @@ public class EquipeService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public Equipe create(CreateEquipeDto dto) {
         String code = requireValue(dto.getCode(), "Le code de l'équipe est requis");
         if (equipeRepository.existsByCodeIgnoreCase(code)) {
@@ -43,8 +44,10 @@ public class EquipeService {
         equipe.setNom(requireValue(dto.getNom(), "Le nom de l'équipe est requis"));
         equipe.setDescription(normalize(dto.getDescription()));
         equipe.setActif(dto.getActif() == null || dto.getActif());
-        equipe.setMembers(resolveMembers(dto.getMemberIds()));
-        return equipeRepository.save(equipe);
+        Set<User> members = resolveMembers(dto.getMemberIds());
+        Equipe saved = equipeRepository.save(equipe);
+        replaceMembers(saved, members);
+        return saved;
     }
 
     public List<Equipe> findAll() {
@@ -56,6 +59,7 @@ public class EquipeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Équipe introuvable"));
     }
 
+    @Transactional
     public Equipe update(Long id, UpdateEquipeDto dto) {
         Equipe equipe = findOne(id);
         if (dto.getCode() != null) {
@@ -68,7 +72,7 @@ public class EquipeService {
         if (dto.getNom() != null) equipe.setNom(requireValue(dto.getNom(), "Le nom de l'équipe est requis"));
         if (dto.getDescription() != null) equipe.setDescription(normalize(dto.getDescription()));
         if (dto.getActif() != null) equipe.setActif(dto.getActif());
-        if (dto.getMemberIds() != null) equipe.setMembers(resolveMembers(dto.getMemberIds()));
+        if (dto.getMemberIds() != null) replaceMembers(equipe, resolveMembers(dto.getMemberIds()));
         return equipeRepository.save(equipe);
     }
 
@@ -78,8 +82,20 @@ public class EquipeService {
         if (reclamationRepository.existsByDestinations_IdEquipe(id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette équipe reçoit encore des réclamations");
         }
-        equipe.getMembers().clear();
+        replaceMembers(equipe, new LinkedHashSet<>());
         equipeRepository.delete(equipe);
+    }
+
+    private void replaceMembers(Equipe equipe, Set<User> members) {
+        Set<User> changedUsers = new LinkedHashSet<>(equipe.getMembers());
+        changedUsers.addAll(members);
+
+        equipe.getMembers().forEach(user -> user.setEquipe(null));
+        members.forEach(user -> user.setEquipe(equipe));
+        userRepository.saveAll(changedUsers);
+
+        equipe.getMembers().clear();
+        equipe.getMembers().addAll(members);
     }
 
     private Set<User> resolveMembers(Set<String> memberIds) {

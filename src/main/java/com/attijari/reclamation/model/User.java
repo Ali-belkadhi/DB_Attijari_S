@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -63,9 +64,11 @@ public class User {
     @Column(name = "DATE_CREATED", nullable = false, updatable = false)
     private LocalDateTime dateCreated;
 
-    @Column(name = "DEPARTEMENT_ID", length = 100)
-    @JsonProperty("departement_id")
-    private String departementId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_EQUIPE", referencedColumnName = "ID_EQUIPE")
+    @JsonIgnore
+    @ToString.Exclude
+    private Equipe equipe;
 
     @ManyToOne
     @JoinColumn(name = "ID_AGENCE", referencedColumnName = "ID_AGENCE")
@@ -96,6 +99,11 @@ public class User {
     @JsonProperty("agenceId")
     public Long getAgenceId() {
         return agence == null ? null : agence.getIdAgence();
+    }
+
+    @JsonProperty("idEquipe")
+    public Long getIdEquipe() {
+        return equipe == null ? null : equipe.getIdEquipe();
     }
 
     @JsonProperty("groupId")

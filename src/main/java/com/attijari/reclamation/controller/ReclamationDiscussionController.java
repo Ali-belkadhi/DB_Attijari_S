@@ -2,6 +2,7 @@ package com.attijari.reclamation.controller;
 
 import com.attijari.reclamation.dto.AddParticipantDto;
 import com.attijari.reclamation.dto.CreateMessageDto;
+import com.attijari.reclamation.dto.InviteParticipantsDto;
 import com.attijari.reclamation.model.Message;
 import com.attijari.reclamation.model.ReclamationParticipant;
 import com.attijari.reclamation.service.MessageService;
@@ -60,6 +61,16 @@ public class ReclamationDiscussionController {
             @Valid @RequestBody AddParticipantDto dto
     ) {
         return participantService.addParticipant(reclamationId, dto);
+    }
+
+    @PostMapping("/participants/invite")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Inviter un utilisateur EMPLOYEE_S ou les membres d'une équipe")
+    public List<ReclamationParticipant> inviteParticipants(
+            @PathVariable String reclamationId,
+            @Valid @RequestBody InviteParticipantsDto dto
+    ) {
+        return participantService.inviteParticipants(reclamationId, dto);
     }
 
     @GetMapping("/participants")

@@ -3,9 +3,11 @@ package com.attijari.reclamation.service;
 import com.attijari.reclamation.dto.CreateUserDto;
 import com.attijari.reclamation.dto.UpdateUserDto;
 import com.attijari.reclamation.model.Agence;
+import com.attijari.reclamation.model.Equipe;
 import com.attijari.reclamation.model.GroupeDroit;
 import com.attijari.reclamation.model.User;
 import com.attijari.reclamation.repository.AgenceRepository;
+import com.attijari.reclamation.repository.EquipeRepository;
 import com.attijari.reclamation.repository.GroupeDroitRepository;
 import com.attijari.reclamation.repository.ReclamationRepository;
 import com.attijari.reclamation.repository.UserRepository;
@@ -23,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AgenceRepository agenceRepository;
+    private final EquipeRepository equipeRepository;
     private final GroupeDroitRepository groupeDroitRepository;
     private final ReclamationRepository reclamationRepository;
 
@@ -30,12 +33,14 @@ public class UserService {
             UserRepository userRepository,
             BCryptPasswordEncoder passwordEncoder,
             AgenceRepository agenceRepository,
+            EquipeRepository equipeRepository,
             GroupeDroitRepository groupeDroitRepository,
             ReclamationRepository reclamationRepository
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.agenceRepository = agenceRepository;
+        this.equipeRepository = equipeRepository;
         this.groupeDroitRepository = groupeDroitRepository;
         this.reclamationRepository = reclamationRepository;
     }
@@ -57,7 +62,7 @@ public class UserService {
         user.setRole(dto.getRole());
         user.setTelephone(dto.getTelephone());
         user.setCin(dto.getCin());
-        user.setDepartementId(dto.getDepartementId());
+        user.setEquipe(resolveEquipe(dto.getIdEquipe()));
         user.setAgence(resolveAgence(dto.getAgenceId(), dto.getAgence()));
         user.setGroupeDroit(resolveGroupe(dto.getGroupId()));
         user.setImage(dto.getImage());
@@ -89,7 +94,7 @@ public class UserService {
         if (dto.getRole() != null) user.setRole(dto.getRole());
         if (dto.getTelephone() != null) user.setTelephone(dto.getTelephone());
         if (dto.getCin() != null) user.setCin(dto.getCin());
-        if (dto.getDepartementId() != null) user.setDepartementId(dto.getDepartementId());
+        if (dto.getIdEquipe() != null) user.setEquipe(resolveEquipe(dto.getIdEquipe()));
         if (dto.getAgenceId() != null) user.setAgence(resolveAgence(dto.getAgenceId(), null));
         else if (dto.getAgence() != null) user.setAgence(resolveAgence(null, dto.getAgence()));
         if (dto.getGroupId() != null) user.setGroupeDroit(resolveGroupe(dto.getGroupId()));
@@ -112,6 +117,12 @@ public class UserService {
         User user = findOne(id);
         user.setImage(imagePath);
         return userRepository.save(user);
+    }
+
+    private Equipe resolveEquipe(Long idEquipe) {
+        if (idEquipe == null) return null;
+        return equipeRepository.findById(idEquipe)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Équipe introuvable"));
     }
 
     private Agence resolveAgence(Long agenceId, String legacyAgence) {

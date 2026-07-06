@@ -24,6 +24,9 @@ public class UpdateReclamationDto {
     @Size(max = 50, message = "Le statut ne doit pas dépasser 50 caractères")
     private String statut;
 
+    @Size(max = 50, message = "La priorité ne doit pas dépasser 50 caractères")
+    private String priorite;
+
     private String description;
 
     private Set<Long> destinationIds;

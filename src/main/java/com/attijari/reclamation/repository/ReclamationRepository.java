@@ -21,7 +21,20 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, String
 
     boolean existsByDestinations_IdEquipe(Long equipeId);
 
-    List<Reclamation> findByReceivers_IdUserOrderByCreatedAtDesc(String receiverId);
+    @Query("""
+            SELECT r FROM Reclamation r
+            WHERE r.sender.idUser <> :idUser
+              AND (
+                   EXISTS (
+                       SELECT 1 FROM r.receivers u WHERE u.idUser = :idUser
+                   )
+                   OR EXISTS (
+                       SELECT 1 FROM r.participants p WHERE p.user.idUser = :idUser
+                   )
+              )
+            ORDER BY r.createdAt DESC
+            """)
+    List<Reclamation> findReceivedByUser(@Param("idUser") String idUser);
 
     /**
      * Réclamations où l'utilisateur est expéditeur OU destinataire direct.
@@ -32,6 +45,9 @@ public interface ReclamationRepository extends JpaRepository<Reclamation, String
             WHERE r.sender.idUser = :idUser
                OR EXISTS (
                    SELECT 1 FROM r.receivers u WHERE u.idUser = :idUser
+               )
+               OR EXISTS (
+                   SELECT 1 FROM r.participants p WHERE p.user.idUser = :idUser
                )
             ORDER BY r.createdAt DESC
             """)

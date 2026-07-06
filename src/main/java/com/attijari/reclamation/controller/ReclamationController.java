@@ -47,7 +47,7 @@ public class ReclamationController {
     }
 
     @GetMapping("/receiver/{idUser}")
-    @Operation(summary = "Lister les réclamations reçues directement par un utilisateur")
+    @Operation(summary = "Lister les réclamations reçues directement ou via une équipe")
     public List<Reclamation> findReceivedByUser(@PathVariable String idUser) {
         return reclamationService.findReceivedByUser(idUser);
     }

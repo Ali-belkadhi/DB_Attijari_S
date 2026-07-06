@@ -37,8 +37,9 @@ public class CreateUserDto {
 
     private String cin;
 
-    @JsonProperty("departement_id")
-    private String departementId;
+    @JsonProperty("idEquipe")
+    @JsonAlias({"equipeId", "id_equipe", "ID_EQUIPE"})
+    private Long idEquipe;
 
     private String agence;
 

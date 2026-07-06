@@ -43,15 +43,15 @@ public class LoginResponseDto {
         private String cin;
         private String agence;
         
-        @JsonProperty("departement_id")
-        private String departementId;
+        @JsonProperty("idEquipe")
+        private Long idEquipe;
         
         private String image;
 
         public UserSummary() {
         }
 
-        public UserSummary(String id, String nom, String prenom, String email, UserRole role, String telephone, String cin, String agence, String departementId, String image) {
+        public UserSummary(String id, String nom, String prenom, String email, UserRole role, String telephone, String cin, String agence, Long idEquipe, String image) {
             this.id = id;
             this.nom = nom;
             this.prenom = prenom;
@@ -60,7 +60,7 @@ public class LoginResponseDto {
             this.telephone = telephone;
             this.cin = cin;
             this.agence = agence;
-            this.departementId = departementId;
+            this.idEquipe = idEquipe;
             this.image = image;
         }
 
@@ -129,12 +129,12 @@ public class LoginResponseDto {
             this.agence = agence;
         }
 
-        public String getDepartementId() {
-            return departementId;
+        public Long getIdEquipe() {
+            return idEquipe;
         }
 
-        public void setDepartementId(String departementId) {
-            this.departementId = departementId;
+        public void setIdEquipe(Long idEquipe) {
+            this.idEquipe = idEquipe;
         }
 
         public String getImage() {

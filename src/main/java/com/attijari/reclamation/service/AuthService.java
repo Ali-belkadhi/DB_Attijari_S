@@ -37,7 +37,7 @@ public class AuthService {
                 user.getTelephone(),
                 user.getCin(),
                 user.getAgenceNom(),
-                user.getDepartementId(),
+                user.getIdEquipe(),
                 user.getImage()
         );
 
