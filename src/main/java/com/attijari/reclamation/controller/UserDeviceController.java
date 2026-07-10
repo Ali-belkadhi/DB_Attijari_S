@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/devices")
 @Tag(name = "Devices", description = "Enregistrement des appareils pour les notifications push")
@@ -25,7 +27,8 @@ public class UserDeviceController {
 
     @PostMapping("/register-token")
     @Operation(summary = "Enregistrer ou réactiver un token FCM")
-    public ResponseEntity<UserDevice> registerToken(@Valid @RequestBody RegisterDeviceTokenDto dto) {
-        return ResponseEntity.ok(userDeviceService.registerToken(dto));
+    public ResponseEntity<UserDevice> registerToken(@Valid @RequestBody RegisterDeviceTokenDto dto, Principal principal) {
+        String currentUserId = principal != null ? principal.getName() : dto.getUserId();
+        return ResponseEntity.ok(userDeviceService.registerToken(dto, currentUserId));
     }
 }

@@ -11,7 +11,6 @@ import lombok.Setter;
 @Schema(description = "Association d'un token Firebase avec un utilisateur")
 public class RegisterDeviceTokenDto {
 
-    @NotBlank
     @Size(max = 100)
     @Schema(example = "3")
     private String userId;
