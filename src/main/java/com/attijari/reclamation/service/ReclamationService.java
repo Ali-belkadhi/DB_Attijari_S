@@ -133,6 +133,9 @@ public class ReclamationService {
 
     public Reclamation update(String id, UpdateReclamationDto dto) {
         Reclamation reclamation = findOne(id);
+        String oldStatut = reclamation.getStatut();
+        Set<Equipe> oldDestinations = new LinkedHashSet<>(reclamation.getDestinations());
+
         if (dto.getSenderId() != null)
             reclamation.setSender(resolveSender(dto.getSenderId()));
         if (dto.getObjet() != null)
@@ -155,6 +158,40 @@ public class ReclamationService {
             reclamation.setAgence(resolveAgence(dto.getAgenceId()));
         Reclamation savedReclamation = reclamationRepository.save(reclamation);
         participantService.addInitialParticipants(savedReclamation);
+
+        String newStatut = savedReclamation.getStatut();
+        if (newStatut != null && !newStatut.equals(oldStatut)) {
+            if ("CLOTUREE".equalsIgnoreCase(newStatut) || "CLOTURE".equalsIgnoreCase(newStatut)) {
+                notificationService.notifyUsers(
+                        savedReclamation,
+                        "RECLAMATION_CLOSED",
+                        "Réclamation clôturée",
+                        "La réclamation " + savedReclamation.getObjet() + " a été clôturée.",
+                        participantService.findParticipantUsers(savedReclamation.getIdReclamation()),
+                        null
+                );
+            } else {
+                notificationService.notifyUsers(
+                        savedReclamation,
+                        "RECLAMATION_STATUS_CHANGED",
+                        "Changement de statut",
+                        "La réclamation " + savedReclamation.getObjet() + " est passée au statut " + newStatut,
+                        participantService.findParticipantUsers(savedReclamation.getIdReclamation()),
+                        null
+                );
+            }
+        }
+
+        if (dto.getDestinationIds() != null && !oldDestinations.equals(savedReclamation.getDestinations())) {
+            notificationService.notifyUsers(
+                    savedReclamation,
+                    "RECLAMATION_ASSIGNED",
+                    "Nouvelle affectation",
+                    "La réclamation " + savedReclamation.getObjet() + " a été affectée à votre équipe.",
+                    savedReclamation.getReceivers(),
+                    null
+            );
+        }
 
         return savedReclamation;
     }
