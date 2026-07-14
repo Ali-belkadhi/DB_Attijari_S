@@ -235,7 +235,7 @@ public class FirebaseNotificationService {
     /** Vérifie si l'erreur FCM indique un token invalide ou expiré */
     private boolean isTokenInvalid(FirebaseMessagingException e) {
         MessagingErrorCode code = e.getMessagingErrorCode();
-        return code == MessagingErrorCode.REGISTRATION_TOKEN_NOT_REGISTERED
+        return code == MessagingErrorCode.UNREGISTERED
                 || code == MessagingErrorCode.INVALID_ARGUMENT;
     }
 
