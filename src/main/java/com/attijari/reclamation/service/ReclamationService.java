@@ -139,6 +139,7 @@ public class ReclamationService {
             reclamation.setObjet(requireValue(dto.getObjet(), "L'objet est requis"));
         if (dto.getType() != null)
             reclamation.setType(requireValue(dto.getType(), "Le type est requis"));
+        String oldStatut = reclamation.getStatut();
         if (dto.getStatut() != null)
             reclamation.setStatut(requireValue(dto.getStatut(), "Le statut est requis"));
         if (dto.getPriorite() != null)
@@ -155,6 +156,37 @@ public class ReclamationService {
             reclamation.setAgence(resolveAgence(dto.getAgenceId()));
         Reclamation savedReclamation = reclamationRepository.save(reclamation);
         participantService.addInitialParticipants(savedReclamation);
+
+        // Notify on team assignment
+        if (dto.getDestinationIds() != null && !savedReclamation.getDestinations().isEmpty()) {
+            notificationService.notifyUsers(
+                    savedReclamation,
+                    "RECLAMATION_ASSIGNED_TEAM",
+                    "Nouvelle affectation",
+                    "La réclamation " + savedReclamation.getObjet() + " a été affectée à votre équipe.",
+                    resolveTeamMembers(savedReclamation.getDestinations()),
+                    savedReclamation.getSender() != null ? savedReclamation.getSender().getIdUser() : null
+            );
+        }
+
+        // Notify on status change
+        if (dto.getStatut() != null && !dto.getStatut().trim().equals(oldStatut)) {
+            String newStatut = savedReclamation.getStatut();
+            String notifType = "CLOTUREE".equalsIgnoreCase(newStatut) ? "RECLAMATION_CLOSED" : "RECLAMATION_STATUS_CHANGED";
+            String title = "CLOTUREE".equalsIgnoreCase(newStatut) ? "Réclamation clôturée" : "Changement de statut";
+            String body = "CLOTUREE".equalsIgnoreCase(newStatut) ? 
+                "La réclamation " + savedReclamation.getObjet() + " a été clôturée." :
+                "Le statut de la réclamation " + savedReclamation.getObjet() + " est passé à " + newStatut + ".";
+                
+            notificationService.notifyUsers(
+                    savedReclamation,
+                    notifType,
+                    title,
+                    body,
+                    participantService.findParticipantUsers(savedReclamation.getIdReclamation()),
+                    savedReclamation.getSender() != null ? savedReclamation.getSender().getIdUser() : null
+            );
+        }
 
         return savedReclamation;
     }

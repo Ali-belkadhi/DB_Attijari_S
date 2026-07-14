@@ -66,6 +66,16 @@ public class ReclamationParticipantService {
                 topic(reclamationId),
                 Map.of("event", "PARTICIPANT_ADDED", "participant", participant)
         );
+
+        notificationService.notifyUsers(
+                reclamation,
+                "RECLAMATION_ASSIGNED_USER",
+                "Nouvelle affectation",
+                "Vous avez été ajouté à la réclamation " + reclamation.getObjet() + ".",
+                List.of(user),
+                null
+        );
+
         return participant;
     }
 
